@@ -1,6 +1,6 @@
 name: Workshop CI and Vercel Deploy
 
-on:
+"on":
   pull_request:
     branches: [develop, main, 'release/**']
   push:
