@@ -77,6 +77,7 @@ Vercel 프로젝트: [`cw-my/teamchat`](https://vercel.com/cw-my/teamchat), Node
 
 | 이벤트 | 검사 | 배포 |
 | --- | --- | --- |
+| feature 등 작업 브랜치 push | workshop-ci | 없음 |
 | develop / main / release 대상 PR | workshop-ci | 없음 |
 | develop push | workshop-ci 성공 후 | Preview |
 | main push | workshop-ci 성공 후 | Production |
