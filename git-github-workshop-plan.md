@@ -797,9 +797,11 @@ git push -u origin sync/0.1.0-to-develop
 | hotfix 전파 등 PR → release/* | 같은 CI | 기본 구성에서는 배포하지 않음 | 해당 PR |
 | develop에 merge되어 push 발생 | CI 재실행 | Vercel Preview | Actions Summary의 URL |
 | main에 merge되어 push 발생 | CI 재실행 | Vercel Production | 배포 URL + 고정 Production 도메인 |
-| feature 브랜치에 push만 함 | 열린 PR이 있으면 PR CI 실행 | 배포하지 않음 | PR이 없으면 이 예제 workflow는 실행되지 않음 |
+| feature 등 모든 브랜치 push | PR 유무와 관계없이 같은 CI 실행 | main/develop 이외에는 배포하지 않음 | 해당 push의 Actions 실행 |
+| 그 밖의 모든 PR | 대상 브랜치와 관계없이 같은 CI 실행 | 배포하지 않음 | PR의 Checks |
+| workflow_dispatch 수동 실행 | 선택한 ref의 같은 CI 실행 | main은 Production, develop은 Preview, 그 밖은 배포하지 않음 | 수동 Actions 실행의 Summary |
 
-**CI 성공을 확인한 동일 실행의 deploy job이 배포**하도록 `needs: ci`를 사용한다. PR 검사 성공과 main/develop에 합쳐진 실제 커밋의 검사 성공을 모두 확인한다.
+**모든 push·모든 PR·수동 실행에서 CI를 수행**한다. feature 브랜치는 PR 생성 전부터 검사되며, 열린 PR에 push하면 push 검사와 PR 검사가 각각 실행될 수 있다. **CI 성공을 확인한 동일 실행의 deploy job이 배포**하도록 `needs: ci`를 사용한다. PR 검사 성공과 main/develop에 합쳐진 실제 커밋의 검사 성공을 모두 확인한다.
 
 이 설계에서 feature PR을 머지하기 전에는 **자동 PR Preview가 없다.** 리뷰 시 로컬에서 기능을 확인하고, develop 머지 후 통합 Preview를 확인한다. PR마다 Preview를 만드는 기능은 기본 과정이 안정된 뒤 별도로 추가한다.
 
@@ -867,11 +869,7 @@ npx --no-install vercel link
 ```yaml
 name: Workshop CI and Vercel Deploy
 
-on:
-  pull_request:
-    branches: [develop, main, "release/**"]
-  push:
-    branches: [develop, main]
+"on": [push, pull_request, workflow_dispatch]
 
 permissions:
   contents: read
@@ -907,7 +905,7 @@ jobs:
     name: deploy
     needs: ci
     if: >-
-      github.event_name == 'push' &&
+      github.event_name != 'pull_request' &&
       (github.ref == 'refs/heads/develop' ||
        github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
@@ -971,11 +969,12 @@ jobs:
 
 | 설정 또는 명령 | 의미 |
 | --- | --- |
-| `pull_request` | PR 생성·갱신 시 검사. branches는 PR의 대상 브랜치를 의미 |
-| `push` | main/develop에 실제 합쳐진 커밋 검사 및 배포 |
+| `pull_request` | 모든 대상 브랜치의 PR 생성·갱신 시 검사. PR 이벤트에서는 배포하지 않음 |
+| `push` | feature를 포함한 모든 브랜치 커밋 검사. main/develop ref만 배포 |
+| `workflow_dispatch` | 수동으로 선택한 ref 검사. main/develop ref만 해당 환경에 배포 |
 | `permissions: contents: read` | workflow의 기본 GitHub 토큰 권한을 읽기로 제한 |
 | `needs: ci` | 검사에 성공해야 deploy 진행 |
-| `if: github.event_name == 'push'` | PR 이벤트에서 배포 토큰을 사용하는 job을 실행하지 않음 |
+| `if: github.event_name != 'pull_request'` + ref 조건 | PR 이벤트를 제외하고 main/develop ref에서만 deploy 실행. Environment branch 정책도 preview=develop, production=main으로 제한 |
 | `vercel pull` | 연결된 프로젝트 설정과 해당 배포 환경을 가져옴 |
 | `vercel build` | Vercel 형식의 빌드 결과물을 Actions에서 생성 |
 | `--prod` | Production 설정·빌드·배포를 맞춤 |
@@ -1015,7 +1014,7 @@ CLI 배포에는 Git integration과 같은 자동 PR URL 코멘트가 반드시 
 | npm ci 실패 | Node 버전, lockfile, 네트워크 | README의 버전으로 맞춤. 임의로 lockfile을 삭제해 전체 의존성을 바꾸지 않음 |
 | CI에 Missing script 표시 | package.json scripts | Starter의 스크립트·실제 도구 설치를 확인 |
 | lint·typecheck·test 실패 | 가장 먼저 실패한 단계의 로그 | 해당 원인을 고친 새 commit을 같은 PR에 push |
-| CI가 Waiting/Expected | 실제 job 이름, branches 필터, Actions 정책 | required check가 workshop-ci와 일치하는지 확인 |
+| CI가 Waiting/Expected | 실제 job 이름, workflow 이벤트, Actions 정책 | required check가 workshop-ci와 일치하는지 확인 |
 | Approve를 눌렀는데 머지 불가 | 최신 변경·승인 무효화·base·미해결 대화 | 최신 코드 검토 후 필요한 승인·검사 수행 |
 | 타인 PR이 머지되어 내 PR이 오래됨 | 최신 develop과의 차이 | 내 feature에서 origin/develop merge 후 CI·재리뷰 |
 | 공통 파일 충돌 과다 | 중복 티켓·의존성·변경 범위 | 파일 담당과 머지 순서 조정. 계획한 충돌 실습 외의 큰 리팩터링 축소 |
