@@ -77,12 +77,14 @@ Vercel 프로젝트: [`cw-my/teamchat`](https://vercel.com/cw-my/teamchat), Node
 
 | 이벤트 | 검사 | 배포 |
 | --- | --- | --- |
-| feature 등 작업 브랜치 push | workshop-ci | 없음 |
-| develop / main / release 대상 PR | workshop-ci | 없음 |
-| develop push | workshop-ci 성공 후 | Preview |
-| main push | workshop-ci 성공 후 | Production |
+| feature 등 작업 브랜치 push | push-ci | 없음 |
+| 모든 PR | workshop-ci | 없음 |
+| develop push | push-ci 성공 후 | Preview |
+| main push | push-ci 성공 후 | Production |
 
 Git 자동 배포는 `vercel.json`에서 끄고 Actions가 배포를 담당합니다. 필요한 repository Actions secrets는 다음과 같습니다.
+
+[PR 검사](.github/workflows/pr-checks.yml)와 [push 검사·배포](.github/workflows/workshop.yml)를 구분합니다. 브랜치 보호의 필수 검사는 PR용 `workshop-ci`입니다.
 
 `develop → main` PR을 머지하면 main의 push 이벤트로 **검사·테스트·빌드 → 성공 시 Production 배포**가 실행됩니다. PR의 Approve만으로 배포되지는 않습니다. `release/*` 브랜치는 확장 과정에서 선택적으로 사용합니다.
 
