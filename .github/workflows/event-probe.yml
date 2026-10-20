@@ -1,0 +1,9 @@
+name: Event trigger diagnostic
+"on": [push, pull_request]
+permissions: {}
+jobs:
+  event-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - run: printf 'event=%s ref=%s\n' "$GITHUB_EVENT_NAME" "$GITHUB_REF"
