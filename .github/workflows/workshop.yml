@@ -1,6 +1,6 @@
-name: Team Chat CI and Deploy
+name: Team Chat Push and Deploy
 
-"on": [push, pull_request]
+"on": push
 
 permissions:
   contents: read
@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   ci:
-    name: workshop-ci
+    name: push-ci
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
