@@ -92,7 +92,8 @@
 | `AGENTS.md` | AI 작업 범위와 검증 규칙 |
 | `.github/ISSUE_TEMPLATE/work-item.md` | 이슈 템플릿 |
 | `.github/pull_request_template.md` | PR 템플릿 |
-| `.github/workflows/ci-cd.yml` | CI 및 Vercel 배포 |
+| `.github/workflows/pr-checks.yml` | PR 전용 검사와 required check `workshop-ci`. 배포·배포 secrets 없음 |
+| `.github/workflows/workshop.yml` | push 전용 검사 `push-ci`, main/develop의 Vercel 배포 |
 | `.nvmrc`, `package-lock.json` | 교육 환경과 의존성 고정 |
 | `vercel.json` | Git 자동 배포를 끄고 Actions로 배포 일원화 |
 
@@ -789,19 +790,16 @@ git push -u origin sync/0.1.0-to-develop
 
 ### 11.1 이벤트와 배포 대상을 고정한다
 
-| 이벤트 | 수행할 검사 | 배포 대상 | 참가자 확인 지점 |
+| 이벤트 | workflow와 검사 | 배포 대상 | 참가자 확인 지점 |
 | --- | --- | --- | --- |
-| feature/fix PR → develop | lint·typecheck·test·build | 배포하지 않음 | PR의 Checks |
-| develop → main 공동 릴리스 PR | 같은 CI | 머지 전에는 배포하지 않음 | 공동 릴리스 PR의 Checks |
-| release/hotfix PR → main (확장) | 같은 CI | 배포하지 않음 | release/hotfix PR |
-| hotfix 전파 등 PR → release/* | 같은 CI | 기본 구성에서는 배포하지 않음 | 해당 PR |
-| develop에 merge되어 push 발생 | CI 재실행 | Vercel Preview | Actions Summary의 URL |
-| main에 merge되어 push 발생 | CI 재실행 | Vercel Production | 배포 URL + 고정 Production 도메인 |
-| feature 등 모든 브랜치 push | PR 유무와 관계없이 같은 CI 실행 | main/develop 이외에는 배포하지 않음 | 해당 push의 Actions 실행 |
-| 그 밖의 모든 PR | 대상 브랜치와 관계없이 같은 CI 실행 | 배포하지 않음 | PR의 Checks |
-| workflow_dispatch 수동 실행 | 선택한 ref의 같은 CI 실행 | main은 Production, develop은 Preview, 그 밖은 배포하지 않음 | 수동 Actions 실행의 Summary |
+| feature/fix PR → develop | `pr-checks.yml`의 `workshop-ci`: lint·typecheck·test·build | 배포하지 않음 | PR의 Checks·required check |
+| develop → main 공동 릴리스 PR | 같은 PR 전용 `workshop-ci` | 머지 전에는 배포하지 않음 | 공동 릴리스 PR의 Checks |
+| 그 밖의 모든 PR | 같은 PR 전용 `workshop-ci` | 배포하지 않음 | 해당 PR의 Checks |
+| develop에 merge되어 push 발생 | `workshop.yml`의 `push-ci` 재검사 | CI 성공 후 Vercel Preview | push Actions Summary의 URL |
+| main에 merge되어 push 발생 | `workshop.yml`의 `push-ci` 재검사 | CI 성공 후 Vercel Production | push Actions Summary·고정 Production 도메인 |
+| feature 등 나머지 브랜치 push | PR 유무와 관계없이 `workshop.yml`의 `push-ci` | 배포하지 않음 | 해당 push의 Actions 실행 |
 
-**모든 push·모든 PR·수동 실행에서 CI를 수행**한다. feature 브랜치는 PR 생성 전부터 검사되며, 열린 PR에 push하면 push 검사와 PR 검사가 각각 실행될 수 있다. **CI 성공을 확인한 동일 실행의 deploy job이 배포**하도록 `needs: ci`를 사용한다. PR 검사 성공과 main/develop에 합쳐진 실제 커밋의 검사 성공을 모두 확인한다.
+**PR 검사와 push 검사·배포는 서로 다른 workflow**다. PR은 `workshop-ci`를 required check로 사용하며 배포 secrets를 읽지 않는다. push는 모든 브랜치에서 `push-ci`를 수행하고, main/develop ref에서만 같은 실행의 `deploy`가 이어진다. job ID `ci`에 대한 `needs: ci`가 push 검사 성공을 배포의 선행 조건으로 만든다. 열린 PR에 push하면 push 검사와 PR 검사가 각각 실행될 수 있다.
 
 이 설계에서 feature PR을 머지하기 전에는 **자동 PR Preview가 없다.** 리뷰 시 로컬에서 기능을 확인하고, develop 머지 후 통합 Preview를 확인한다. PR마다 Preview를 만드는 기능은 기본 과정이 안정된 뒤 별도로 추가한다.
 
@@ -829,7 +827,7 @@ npx --no-install vercel link
 | `VERCEL_ORG_ID` | 프로젝트 소유자의 orgId | Vercel 프로젝트와 정확히 일치 |
 | `VERCEL_PROJECT_ID` | 프로젝트의 projectId | 교육 프로젝트 식별자 |
 
-아래 예제는 **GitHub repository의 Actions secrets**를 읽는다. 저장소의 **Settings → Secrets and variables → Actions**에 입력한다. 조직 정책이 Environment secrets를 요구하면 preview/production 환경에 같은 이름으로 각각 저장한다. [S15]
+push 배포 workflow는 **GitHub repository의 Actions secrets**를 읽는다. 저장소의 **Settings → Secrets and variables → Actions**에 입력한다. 조직 정책이 Environment secrets를 요구하면 preview/production 환경에 같은 이름으로 각각 저장한다. [S15]
 
 ### 11.3 Git 연동의 중복 배포를 끈다
 
@@ -850,7 +848,7 @@ npx --no-install vercel link
 
 ### 11.4 GitHub Environment 설정
 
-예제 YAML에 맞춰 `preview`와 `production` 환경을 미리 만든다.
+실제 push 배포 workflow에 맞춰 `preview`와 `production` 환경을 미리 만든다.
 
 - preview: deployment branch를 develop으로 제한.
 - production: deployment branch를 main으로 제한.
@@ -860,121 +858,26 @@ npx --no-install vercel link
 
 해당 저장소에서 Environment를 사용하지 않는 운영안을 택하면 아래 `environment:` 블록을 제거하고 repository secrets와 Actions Summary URL을 사용한다. main/develop 보호 규칙과 CI 선행 조건은 그대로 준비한다.
 
-### 11.5 기본 workflow 예시
+### 11.5 실제 workflow 파일과 실행 계약
 
-경로: `.github/workflows/ci-cd.yml`
+설정의 기준은 다음 두 소스 파일이다. 문서에 전체 YAML을 복제하지 않고 실제 파일에서 이벤트·job 이름·배포 조건·버전 고정을 확인한다.
 
-**전제:** `.nvmrc`, scripts, 실제 테스트, lockfile, Vercel CLI devDependency, 프로젝트·secrets·환경이 이미 준비되어 있다. 아래 코드는 계획에 포함한 구성 예시이며 실제 계정에서 실행을 검증했다는 의미는 아니다.
+- [PR 검사: `.github/workflows/pr-checks.yml`](.github/workflows/pr-checks.yml): `"on": pull_request`. 모든 PR의 `workshop-ci`가 `npm ci`와 `npm run check`를 수행한다. 브랜치 보호의 required check이며, 배포 job과 배포 secrets가 없다.
+- [Push 검사·배포: `.github/workflows/workshop.yml`](.github/workflows/workshop.yml): `"on": push`. 모든 브랜치의 `push-ci`가 같은 검사를 수행한다. job ID는 `ci`이며, `deploy`는 `needs: ci`와 main/develop ref 조건을 만족할 때만 실행한다.
 
-```yaml
-name: Workshop CI and Vercel Deploy
+`deploy`는 develop에서 Preview, main에서 Production 환경을 선택하고, 고정한 Vercel CLI로 해당 환경 설정을 가져와 빌드·배포한다. GitHub Environment의 branch 정책도 preview=develop, production=main으로 제한한다. PR 전용 workflow와 push 전용 workflow는 승인 검사와 실제 배포 커밋 검증을 각각 담당한다.
 
-"on": [push, pull_request, workflow_dispatch]
-
-permissions:
-  contents: read
-
-concurrency:
-  group: workshop-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: false
-
-jobs:
-  ci:
-    name: workshop-ci
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    env:
-      NEXT_PUBLIC_BUILD_SHA: ${{ github.sha }}
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-
-      - uses: actions/setup-node@v7
-        with:
-          node-version-file: .nvmrc
-          cache: npm
-
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run typecheck
-      - run: npm run test:ci
-      - run: npm run build
-
-  deploy:
-    name: deploy
-    needs: ci
-    if: >-
-      github.event_name != 'pull_request' &&
-      (github.ref == 'refs/heads/develop' ||
-       github.ref == 'refs/heads/main')
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    environment:
-      name: ${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }}
-      url: ${{ steps.vercel.outputs.url }}
-
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          ref: ${{ github.sha }}
-          persist-credentials: false
-
-      - uses: actions/setup-node@v7
-        with:
-          node-version-file: .nvmrc
-          package-manager-cache: false
-
-      - run: npm ci
-
-      - name: Build and deploy to Vercel
-        id: vercel
-        shell: bash
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          NEXT_PUBLIC_BUILD_SHA: ${{ github.sha }}
-        run: |
-          set -euo pipefail
-          test -n "$VERCEL_TOKEN"
-          test -n "$VERCEL_ORG_ID"
-          test -n "$VERCEL_PROJECT_ID"
-
-          if [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
-            npx --no-install vercel pull --yes \
-              --environment=production --token="$VERCEL_TOKEN"
-            npx --no-install vercel build --prod \
-              --token="$VERCEL_TOKEN"
-            DEPLOY_URL=$(npx --no-install vercel deploy \
-              --prebuilt --prod --yes --token="$VERCEL_TOKEN")
-          else
-            npx --no-install vercel pull --yes \
-              --environment=preview --token="$VERCEL_TOKEN"
-            npx --no-install vercel build \
-              --token="$VERCEL_TOKEN"
-            DEPLOY_URL=$(npx --no-install vercel deploy \
-              --prebuilt --yes --token="$VERCEL_TOKEN")
-          fi
-
-          test -n "$DEPLOY_URL"
-          printf 'url=%s\n' "$DEPLOY_URL" >> "$GITHUB_OUTPUT"
-          printf '### Vercel deployment\n\n[Open deployment](%s)\n\nCommit: %s\n' \
-            "$DEPLOY_URL" "$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
-```
-
-작성 기준일에 Actions 공식 저장소의 예시는 `checkout@v7`, `setup-node@v7`를 사용한다. 교육 전에 지원 여부를 다시 확인하고, 조직의 공급망 정책에 따라 검증한 full commit SHA로 고정한다. [S20][S21]
+**전제:** `.nvmrc`, scripts, 실제 테스트, lockfile, Vercel CLI devDependency, 프로젝트·secrets·환경이 준비되어 있어야 한다. 자동 실행 성공 여부는 해당 이벤트와 커밋 SHA의 실제 Actions 결과로 확인하며, 파일 존재만으로 검증 완료로 보지 않는다. Actions 도구 버전은 실제 소스의 full commit SHA 고정을 기준으로 확인한다. [S20][S21]
 
 ### 11.6 workflow를 설명할 때 짚을 내용
 
 | 설정 또는 명령 | 의미 |
 | --- | --- |
-| `pull_request` | 모든 대상 브랜치의 PR 생성·갱신 시 검사. PR 이벤트에서는 배포하지 않음 |
-| `push` | feature를 포함한 모든 브랜치 커밋 검사. main/develop ref만 배포 |
-| `workflow_dispatch` | 수동으로 선택한 ref 검사. main/develop ref만 해당 환경에 배포 |
+| `pr-checks.yml`의 `pull_request` | 모든 PR의 `workshop-ci` 실행. required check이며 배포·배포 secrets 없음 |
+| `workshop.yml`의 `push` | 모든 브랜치의 `push-ci` 실행. main/develop ref만 배포 |
 | `permissions: contents: read` | workflow의 기본 GitHub 토큰 권한을 읽기로 제한 |
-| `needs: ci` | 검사에 성공해야 deploy 진행 |
-| `if: github.event_name != 'pull_request'` + ref 조건 | PR 이벤트를 제외하고 main/develop ref에서만 deploy 실행. Environment branch 정책도 preview=develop, production=main으로 제한 |
+| `needs: ci` | push workflow의 job ID `ci`(표시 이름 `push-ci`) 성공 후 deploy 진행 |
+| deploy의 ref 조건 | push workflow에서 main/develop ref만 배포. Environment branch 정책도 preview=develop, production=main으로 제한 |
 | `vercel pull` | 연결된 프로젝트 설정과 해당 배포 환경을 가져옴 |
 | `vercel build` | Vercel 형식의 빌드 결과물을 Actions에서 생성 |
 | `--prod` | Production 설정·빌드·배포를 맞춤 |
@@ -992,7 +895,7 @@ fork PR은 일반적으로 저장소 secrets를 받지 못한다. 기본 실습�
 ### 11.7 “내 코드가 웹에 반영되었다”를 검증하는 방법
 
 1. 최종 확인은 공동 develop→main PR이 합쳐진 **main push Actions 실행**을 연다. develop push의 Preview 실행은 중간 통합 검증용이다.
-2. push 실행의 `workshop-ci`와 `deploy`가 모두 성공했는지 본다.
+2. push 실행의 `push-ci`와 `deploy`가 모두 성공했는지 본다. `workshop-ci`는 별도의 PR 검사다.
 3. Actions Summary의 **Open deployment**를 연다.
 4. Starter footer의 짧은 SHA와 해당 배포 실행의 SHA를 비교한다.
 5. 자신의 Issue 수용 기준을 Production에서 다시 수행한다. 짝이 같은 Production URL에 다른 이름으로 입장해 새 메시지와 기존 기록을 확인하고, 새로고침 뒤에도 대화가 남는지 본다.
