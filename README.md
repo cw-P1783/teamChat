@@ -2,6 +2,8 @@
 
 Git·GitHub 협업을 **본 실습 100분 + 소개·질문·지연 여유 20분**으로 진행하는 워크숍 스타터입니다. 사전 배포한 공유 채팅에 청중이 함께 접속하고, Next.js 채팅 UI를 바꾸며 Clone → Branching / Checkout → Commit → Push → PR → Review PR → Merge → Resolve merge conflicts → Deploy를 실습합니다.
 
+**청중 접속:** [teamchat-jet.vercel.app](https://teamchat-jet.vercel.app)에서 이름을 입력합니다. 기능 PR은 `develop`에 모아 Preview로 확인하고, 마지막에 `develop → main` PR을 머지해 같은 운영 주소에서 개선 결과를 확인합니다.
+
 ## 실행
 
 Node.js **24.x**와 Git이 필요합니다. macOS 진행자 환경에는 Node.js 24와 npm을 설치했습니다. 참가자는 기존 Node 버전 관리 도구가 있다면 `nvm install && nvm use`로 `.nvmrc`를 적용합니다.
@@ -80,6 +82,8 @@ Vercel 프로젝트: [`cw-my/teamchat`](https://vercel.com/cw-my/teamchat), Node
 | main push | workshop-ci 성공 후 | Production |
 
 Git 자동 배포는 `vercel.json`에서 끄고 Actions가 배포를 담당합니다. 필요한 repository Actions secrets는 다음과 같습니다.
+
+`develop → main` PR을 머지하면 main의 push 이벤트로 **검사·테스트·빌드 → 성공 시 Production 배포**가 실행됩니다. PR의 Approve만으로 배포되지는 않습니다. `release/*` 브랜치는 확장 과정에서 선택적으로 사용합니다.
 
 | 이름 | 값 |
 | --- | --- |

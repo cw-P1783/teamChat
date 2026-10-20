@@ -75,11 +75,15 @@ jobs:
           if [[ "$GITHUB_REF" == 'refs/heads/main' ]]; then
             npx --no-install vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
             npx --no-install vercel build --prod --token="$VERCEL_TOKEN"
-            DEPLOY_URL=$(npx --no-install vercel deploy --prebuilt --prod --yes --token="$VERCEL_TOKEN")
+            DEPLOY_URL=$(npx --no-install vercel deploy --prebuilt --prod --yes \
+              --meta githubCommitRef="$GITHUB_REF_NAME" --meta githubCommitSha="$GITHUB_SHA" \
+              --token="$VERCEL_TOKEN")
           else
             npx --no-install vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
             npx --no-install vercel build --token="$VERCEL_TOKEN"
-            DEPLOY_URL=$(npx --no-install vercel deploy --prebuilt --yes --token="$VERCEL_TOKEN")
+            DEPLOY_URL=$(npx --no-install vercel deploy --prebuilt --yes \
+              --meta githubCommitRef="$GITHUB_REF_NAME" --meta githubCommitSha="$GITHUB_SHA" \
+              --token="$VERCEL_TOKEN")
           fi
 
           [[ "$DEPLOY_URL" == https://* ]]
