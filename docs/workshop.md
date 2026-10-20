@@ -1,16 +1,17 @@
 # Team Chat · 100분 협업 실습
 
-총 120분 중 **100분은 실습, 20분은 인사·질문·인증·네트워크·배포 지연 여유**로 둔다. 시작할 때 모두 사전 배포된 같은 채팅방에 이름을 입력하고 실제로 대화한다. 그 앱의 작은 UI 변경 하나를 Issue → 브랜치 → PR → 동료 리뷰 → merge → 웹 확인까지 끝낸다. 공유 채팅 서버·저장은 사전 구현하며, release·hotfix·Production 역반영은 후속 과정이다.
+총 120분 중 **100분은 실습, 20분은 인사·질문·인증·네트워크·배포 지연 여유**로 둔다. 시작할 때 모두 사전 배포된 같은 채팅방에 이름을 입력하고 실제로 대화한다. 그 앱의 작은 UI 변경 하나를 Issue → 브랜치 → PR → 동료 리뷰 → merge → 웹 확인까지 끝낸다. 공유 채팅 서버·저장은 사전 구현한다. 마지막에 **공동 develop→main PR 한 개**를 사람의 승인·CI 후 머지하고 처음 접속한 Production에서 개선 결과를 확인한다. 별도 release·hotfix 브랜치와 역반영 상세 실습은 후속 과정이다.
 
+- 채팅방 입장: [teamchat-jet.vercel.app](https://teamchat-jet.vercel.app)
 - 저장소: [eun8ang/teamChat](https://github.com/eun8ang/teamChat)
 - 화면 자료: [큰 용어 화면](presenter.html) · [16:9 흐름도](git-flow.svg)
 - 상세 준비·확장 과제: [전체 계획서](../git-github-workshop-plan.md)
 
 ## 교육 전 준비
 
-진행자는 `main`·`develop`, 참가자 Write 권한, 작성자 외 1명 승인, required check `workshop-ci`, merge commit 허용을 확인한다. **교육 전에 공유 채팅 backend·저장·Vercel 배포를 완성**하고 Production 입장 URL을 준비한다. 두 브라우저가 서로 다른 이름으로 같은 방에 들어가 메시지를 주고받고, 새로고침과 UI 재배포 뒤에도 기록이 남는지 검증한다. 서버 구축·DB 설정은 100분 수업에 추가하지 않는다.
+진행자는 `main`·`develop`, 참가자 Write 권한, **기능 PR과 공동 릴리스 PR 모두 작성자 외 1명 승인**, required check `workshop-ci`, merge commit 허용을 확인한다. **교육 전에 공유 채팅 backend·저장·Vercel 배포를 완성**하고 Production 입장 URL을 준비한다. 두 브라우저가 서로 다른 이름으로 같은 방에 들어가 메시지를 주고받고, 새로고침과 UI 재배포 뒤에도 기록이 남는지 검증한다. 서버 구축·DB 설정은 100분 수업에 추가하지 않는다.
 
-Production 관객방은 같은 backend와 안정된 데이터 prefix를 계속 사용한다. develop Preview·로컬 실습은 별도 prefix로 분리한다. 같은 backend를 쓰더라도 실습 메시지가 Production에 섞이지 않아야 한다. Preview 접근권한을 주고 첫 PR부터 배포까지 걸리는 시간을 측정한다. 실제 서버 변수명·연결 방법은 README를 따른다. 로컬 파일만으로 공유 채팅·원격 설정·배포가 완료된 것으로 보지 않는다.
+Production 관객방은 같은 backend와 안정된 데이터 prefix를 계속 사용한다. develop Preview·로컬 실습은 별도 prefix로 분리한다. 같은 backend를 쓰더라도 실습 메시지가 Production에 섞이지 않아야 한다. Preview 접근권한을 주고 기능 PR·develop→main PR 검사와 main Production 배포 시간을 측정한다. develop에는 최신 main 이력이 반영되어 있어야 한다. 실제 서버 변수명·연결 방법은 README를 따른다. 로컬 파일만으로 공유 채팅·원격 설정·배포가 완료된 것으로 보지 않는다.
 
 참가자는 D-1에 Git·Node 24, GitHub 인증·초대 수락, 사용할 AI 도구를 확인하고 `npm ci`와 로컬 앱 실행까지 마친다. `git config user.name`, `git config user.email`이 비어 있다면 저장소 안에서 본인 값으로 설정한다. 진행자는 두 명씩 리뷰 짝을 정하고 **서로 다른 주 수정 파일**을 배정한다.
 
@@ -23,21 +24,21 @@ Production 관객방은 같은 backend와 안정된 데이터 prefix를 계속 �
 | 00–10분 | Flow | 같은 Production 방에 이름 입력·입장·인사, 전체 흐름 | 서로의 실제 메시지 확인 |
 | 10–20분 | Clone | clone, develop 전환, 앱 실행 | origin·현재 브랜치·localhost |
 | 20–30분 | Branching / Checkout | Issue·담당자, 최신 develop에서 분기 | Issue 번호와 feature 브랜치 |
-| 30–55분 | Commit & Push | AI와 작은 변경, diff·검증, commit·push | 작은 변경이 원격에 있음 |
-| 55–80분 | PR / Review PR / Merge | develop PR·짝 리뷰·CI·승인·merge | 동료 승인과 merged PR |
-| 80–95분 | Resolve merge conflicts | 독립된 임시 저장소에서 충돌 해결 | 두 요구사항을 보존한 commit |
-| 95–100분 | Deploy | Actions URL·SHA, 같은 Preview에서 대화·새로고침·제출 | UI 변경과 공유 대화 확인 |
+| 30–50분 | Commit & Push | AI와 작은 변경, diff·검증, commit·push | 작은 변경이 원격에 있음 |
+| 50–75분 | PR / Review PR / Merge | develop 기능 PR·짝 리뷰·CI·승인·merge | 동료 승인과 develop 통합 |
+| 75–90분 | Resolve merge conflicts | 임시 충돌 실습 중 공동 develop→main PR 검사·대표 리뷰 | 충돌 해결과 릴리스 PR 승인 |
+| 90–100분 | Release PR / Deploy | 공동 PR merge·main CI/CD·Production SHA·개선 UI·대화 확인 | 처음 접속한 Production에 개선 반영 |
 
-배포는 PR 머지 직후 시작해 충돌 실습 중 기다린다. 다음 PR은 최신 develop 반영·CI·재승인 여부를 확인한 뒤 순서대로 머지한다. 20분 여유는 새 필수 과제를 넣는 데 사용하지 않는다.
+기능 PR은 최신 develop 반영·CI·재승인 여부를 확인해 순서대로 머지한다. **75분에 develop을 동결하고 공동 develop→main PR 한 개를 연다.** 릴리스 검사는 충돌 실습과 겹쳐 기다린다. 작성자 외 대표 리뷰어가 승인하면 가능하면 85~90분에 머지해 Production 배포 대기도 겹친다. 지연 시 90~95분에 머지하고 운영 여유를 쓴다. 20분 여유는 새 필수 과제를 넣는 데 사용하지 않는다.
 
 ## 시작 10분: 같은 채팅방에서 먼저 대화
 
-1. 진행자가 공유한 **사전 배포 Production URL**을 각자 기기에서 연다.
+1. [사전 배포 Production 채팅방](https://teamchat-jet.vercel.app)을 각자 기기에서 연다.
 2. 표시 이름을 입력해 같은 방에 입장하고 한 문장씩 보낸다.
 3. 다른 참가자의 이름과 메시지가 내 화면에 도착하는지 확인한다.
 4. 새로고침해 이미 보낸 메시지가 남아 있는지 확인하고, 이 앱을 함께 개선한다는 목표를 설명한다.
 
-배포 URL·backend 연결은 교육 전에 준비한다. UI를 배포할 때도 기존 Production backend와 prefix를 유지해 같은 방의 대화가 이어지게 한다. 이후 기능 검증은 짝이 같은 **develop Preview 실습방**에서 수행한다.
+배포 URL·backend 연결은 교육 전에 준비한다. UI를 배포할 때도 기존 Production backend와 prefix를 유지해 같은 방의 대화가 이어지게 한다. 기능 통합은 짝이 같은 **develop Preview 실습방**에서 중간 확인하고, 마지막에는 공동 PR로 main에 배포해 처음 입장한 Production 관객방에서 개선된 UI를 확인한다. Preview 기록을 Production으로 복사하지 않는다.
 
 ## 1. Clone — 공유 저장소를 내 컴퓨터로
 
@@ -171,22 +172,28 @@ git merge origin/develop
 
 해결 후 CI와 동료 검토를 다시 확인한다. 병합을 중단하려면 `git merge --abort`를 사용한다.
 
-## 6. Deploy — 이번 변경이 웹에 있는지 확인
+## 6. Release PR → Deploy — 처음 접속한 Production에 반영
 
-1. `develop`에 합쳐진 마지막 묶음 커밋의 **push** Actions 실행을 연다.
-2. CI와 deploy 성공을 확인하고 Summary의 **Open deployment**를 연다.
-3. 화면 footer의 SHA와 해당 배포 실행 SHA를 비교한다. PR 검사 SHA와 혼동하지 않는다.
-4. 이번 Issue의 수용 기준을 웹에서 다시 수행한다. 짝도 **같은 Preview URL**에 다른 이름으로 입장해 서로 메시지를 보내고, 새로고침 뒤에도 기록이 남는지 확인한다.
-5. Production 관객방의 기존 기록은 별도로 유지되는지 확인하고 결과를 기록한다. UI 재배포를 이유로 기존 방의 저장소·prefix를 바꾸지 않는다.
+대표 한 쌍이 공동 릴리스 PR을 맡고 나머지는 같은 기록을 함께 확인한다. 참가자마다 main 대상 PR을 새로 만들지 않는다.
 
-이 구성은 feature PR 자동 Preview 대신 **develop 통합 Preview**를 만든다. PR 머지·Issue 종료·배포 성공·웹 동작 확인은 서로 다른 상태다. 서비스 장애나 접근 실패는 실제 상태로 기록하고 이전 배포를 새 결과로 제출하지 않는다.
+1. 기능 PR을 모두 develop에 합친 **75분경** 변경을 동결하고 **base=`main`, compare=`develop`** PR 한 개를 연다. 포함 Issue와 develop 검증 결과를 기록한다. 별도 release 브랜치를 만들지 않는다.
+2. 모두 임시 충돌 실습을 하는 동안 릴리스 PR의 `workshop-ci`를 실행한다. 작성자 외 대표 리뷰어가 diff·CI·통합 검증 결과를 확인하고 **Approve**한다. AI 리뷰만으로 사람 승인을 대신하지 않는다.
+3. 승인·CI 성공·충돌 없음·최신 base 조건을 만족하면 대표가 **Create a merge commit**으로 main에 머지한다. 가능하면 85~90분에 진행해 배포 대기를 겹친다.
+4. **main push**의 GitHub Actions 실행에서 CI와 deploy 성공을 확인한다. PR 검사 성공만으로 Production 배포가 끝난 것은 아니다.
+5. [처음 입장한 Production URL](https://teamchat-jet.vercel.app)을 새로고침한다. 화면 footer SHA를 성공한 main 배포 SHA와 비교하고 이번 Issue의 UI 개선을 확인한다.
+6. 기존 Production 대화가 유지되는지 확인하고 새 메시지를 주고받는다. 서로 다른 이름의 참가자가 같은 Production에서 메시지를 받아 보는지, 새로고침 뒤에도 기록이 남는지 확인한다.
+
+**최종 결과는 Production URL + main 배포 SHA + 개선 UI + 실제 공유 대화**다. develop 통합 Preview는 중간 확인용이다. Production은 기존 Redis 연결과 Production prefix를 계속 사용하며 실습 메시지는 별도 Preview prefix에 남는다. UI 배포를 이유로 방의 기록이나 prefix를 초기화하지 않는다.
+
+PR 머지·Issue 종료·배포 성공·웹 동작 확인은 서로 다른 상태다. 서비스 장애나 접근 실패는 실제 상태로 기록하고 이전 배포를 새 결과로 제출하지 않는다.
 
 ```text
-Issue / 내 merged PR:
+Issue / 내 merged 기능 PR:
 내가 리뷰한 PR:
 충돌 해결 commit 또는 설명:
-Actions 실행 / Preview URL / 배포 SHA:
-웹에서 확인한 수용 기준 / 짝과의 실제 대화 / 새로고침 후 기록 유지:
+공동 develop→main PR:
+main push Actions 실행 / Production URL / main 배포 SHA:
+확인한 UI 개선 / 참가자 간 새 메시지 / 기존 기록·새로고침 후 유지:
 미완료·미검증 항목:
 ```
 
@@ -194,9 +201,11 @@ Actions 실행 / Preview URL / 배포 SHA:
 
 - 화면 키: `←` / `→` / `Space` 이전·다음, `G` 흐름도, `F` 전체 화면, `Home` 처음, `End` 마지막. 클릭 가능한 이전·다음 버튼도 있다.
 - 시작 전: Production 관객방·develop 실습방의 데이터 분리, 실제 상호 전송·기록 저장·UI 재배포 후 연속성을 검증한다.
-- 55분: 구현이 크면 범위를 줄이고 작은 PR부터 올린다. 리뷰는 짝별로 동시에 진행한다.
-- 80분: 실제 공용 PR 충돌은 준비된 대표 사례로 설명하고 모두 임시 저장소에서 해결한다.
+- 50분: 구현이 크면 범위를 줄이고 작은 PR부터 올린다. 리뷰는 짝별로 동시에 진행한다.
+- 75분: 기능 통합을 동결해 공동 develop→main PR을 연다. 참가자는 준비된 대표 충돌 사례를 보고 임시 저장소에서 해결한다. 릴리스 PR 검사는 병렬로 기다린다.
+- 85~90분: 대표 리뷰어의 사람 승인·CI 후 공동 PR을 머지해 Production 배포 대기를 겹친다. 늦어지면 90~95분과 운영 여유를 쓴다.
 - 인증 문제: 보조 진행자가 지원하고 필요하면 짝 환경에서 공동 참여한다. 개인 완주와 공동 참여는 구분해 기록한다.
 - CI·배포 대기: 충돌 실습과 겹쳐 기다린다. 여유 20분을 쓰되 전체 120분 안에 종료한다.
 - 공유 대화 실패: 같은 URL·방·데이터 prefix·backend 연결을 확인한다. 한 브라우저에서 전송 버튼이 작동한 것만으로 공유 대화 성공으로 기록하지 않는다.
-- 후속 과정: `develop → release/* → main → Production`, sync PR로 develop 역반영, `main → hotfix/* → main`은 [상세 계획서 10절](../git-github-workshop-plan.md#10-선택-시연확장-과정-release와-hotfix)을 따른다.
+- 수업 후 진행자: main 머지 이력을 sync PR로 develop에 전파한다. 모든 참가자의 추가 필수 실습으로 만들지 않는다.
+- 후속 과정: 별도 `release/*` 브랜치를 통한 릴리스와 역반영 상세 실습, `main → hotfix/* → main`은 [상세 계획서 10절](../git-github-workshop-plan.md#10-선택-시연확장-과정-release와-hotfix)을 따른다.
