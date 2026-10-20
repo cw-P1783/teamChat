@@ -1,4 +1,4 @@
-name: Workshop CI and Vercel Deploy
+name: Team Chat CI and Deploy
 
 "on": [push, pull_request]
 
