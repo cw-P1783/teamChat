@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" role="img" aria-labelledby="title description">
+  <title id="title">Git 협업 흐름: Clone, Branching, Checkout, PR, Review PR, Merge, 충돌 해결과 Preview</title>
+  <desc id="description">최신 develop을 clone하고 feature 브랜치를 만든 뒤 checkout한다. 변경을 commit하고 push한 뒤 develop을 base로 PR을 만든다. CI와 동료 리뷰 및 승인 후 develop에 merge하고 Preview를 확인한다. 충돌하면 내 feature에 최신 develop을 합치고 양쪽 의도를 보존해 해결한 뒤 재검사와 리뷰를 받는다.</desc>
+  <defs>
+    <marker id="blue-arrow" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="12" markerHeight="12" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0 0L12 6L0 12Z" fill="#72b7ff"/></marker>
+    <marker id="mint-arrow" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="12" markerHeight="12" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0 0L12 6L0 12Z" fill="#79e1bf"/></marker>
+    <marker id="amber-arrow" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="12" markerHeight="12" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0 0L12 6L0 12Z" fill="#ffd38a"/></marker>
+    <style>
+      text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",Arial,sans-serif}
+      .title{fill:#f6f8ff;font-size:68px;font-weight:760;letter-spacing:-1.5px}
+      .subtitle{fill:#b5c3da;font-size:29px}
+      .term{fill:#f6f8ff;font-size:48px;font-weight:750;letter-spacing:-1px}
+      .detail{fill:#c2cfe4;font-size:27px}
+      .card{fill:#151f33;stroke:#334662;stroke-width:2}
+      .leader{fill:none;stroke:#5a6d8b;stroke-width:2}
+      .develop{fill:none;stroke:#72b7ff;stroke-width:8;stroke-linecap:round}
+      .feature{fill:none;stroke:#79e1bf;stroke-width:8;stroke-linecap:round}
+      .dnode{fill:#0b1120;stroke:#72b7ff;stroke-width:7}
+      .fnode{fill:#0b1120;stroke:#79e1bf;stroke-width:7}
+    </style>
+  </defs>
+  <rect width="1920" height="1080" fill="#0b1120"/>
+  <text x="80" y="98" class="title">Git → GitHub → Deploy</text>
+  <text x="84" y="153" class="subtitle">같은 방에서 대화하며, 작은 UI 변경을 함께 웹까지</text>
+  <rect x="1460" y="53" width="380" height="72" rx="36" fill="#172d48"/>
+  <text x="1650" y="99" text-anchor="middle" font-size="30" font-weight="700" fill="#a8d0ff">develop → feature → develop</text>
+
+  <path d="M140 375H1785" class="develop" marker-end="url(#blue-arrow)"/>
+  <path d="M510 375C615 375 610 650 710 650H1325C1430 650 1435 375 1550 375" class="feature" marker-end="url(#mint-arrow)"/>
+  <circle cx="190" cy="375" r="18" class="dnode"/>
+  <circle cx="510" cy="375" r="18" class="dnode"/>
+  <circle cx="1550" cy="375" r="21" class="dnode"/>
+  <circle cx="1770" cy="375" r="18" class="dnode"/>
+  <circle cx="710" cy="650" r="17" class="fnode"/>
+  <circle cx="960" cy="650" r="17" class="fnode"/>
+  <circle cx="1190" cy="650" r="17" class="fnode"/>
+  <circle cx="1330" cy="650" r="17" class="fnode"/>
+  <text x="80" y="451" fill="#94c9ff" font-size="42" font-weight="700">develop</text>
+  <text x="690" y="699" fill="#9aeacf" font-size="33" font-weight="650">feature/12-chat-title</text>
+  <text x="875" y="427" fill="#9db0cc" font-size="29">공유 기준 브랜치</text>
+
+  <path d="M190 310V350M510 310V350M1550 310V348" class="leader"/>
+  <rect x="70" y="195" width="290" height="120" rx="18" class="card"/>
+  <text x="94" y="246" class="term">Clone</text>
+  <text x="94" y="288" class="detail">원격 → 내 컴퓨터</text>
+  <rect x="400" y="195" width="410" height="120" rx="18" class="card"/>
+  <text x="425" y="246" class="term">Branching</text>
+  <text x="425" y="288" class="detail">develop에서 작업 분기</text>
+  <rect x="1390" y="195" width="380" height="120" rx="18" class="card"/>
+  <text x="1416" y="246" class="term">Merge</text>
+  <text x="1416" y="288" class="detail">검토한 변경을 통합</text>
+
+  <path d="M710 676L675 718M960 596V625M1190 676V718M1330 676L1450 718" class="leader"/>
+  <rect x="500" y="720" width="330" height="120" rx="18" class="card"/>
+  <text x="524" y="771" class="term">Checkout</text>
+  <text x="524" y="813" class="detail">내 브랜치로 이동</text>
+  <rect x="820" y="475" width="360" height="120" rx="18" class="card"/>
+  <text x="845" y="526" fill="#f6f8ff" font-size="40" font-weight="750">Commit &amp; Push</text>
+  <text x="845" y="568" class="detail">검증 → 기록 → 공유</text>
+  <rect x="1000" y="720" width="280" height="120" rx="18" class="card"/>
+  <text x="1025" y="771" class="term">PR</text>
+  <text x="1025" y="813" class="detail">base: develop</text>
+  <rect x="1320" y="720" width="470" height="120" rx="18" class="card"/>
+  <text x="1345" y="771" class="term">Review PR</text>
+  <text x="1345" y="813" class="detail">CI · 동료 검토 · Approve</text>
+
+  <path d="M1770 401V474" class="develop" stroke-width="4" marker-end="url(#blue-arrow)"/>
+  <rect x="1580" y="485" width="260" height="120" rx="18" fill="#12283b" stroke="#315872" stroke-width="2"/>
+  <text x="1605" y="536" fill="#a8d7ff" font-size="43" font-weight="750">Preview</text>
+  <text x="1605" y="578" class="detail">Actions → URL</text>
+
+  <path d="M1210 850V884" fill="none" stroke="#ffd38a" stroke-width="3" stroke-dasharray="7 7" marker-end="url(#amber-arrow)"/>
+  <text x="1234" y="880" fill="#ffd38a" font-size="26">충돌이 있으면</text>
+  <rect x="80" y="900" width="1760" height="120" rx="20" fill="#322718" stroke="#87643a" stroke-width="2"/>
+  <text x="108" y="951" fill="#ffe0a9" font-size="45" font-weight="750">Resolve merge conflicts</text>
+  <text x="108" y="995" fill="#f7d9a7" font-size="29">내 feature ← 최신 develop · 양쪽 의도 보존 → add → commit → 재검사 · 재리뷰</text>
+  <text x="1840" y="1060" text-anchor="end" fill="#8e9db5" font-size="23">본 과정: develop Preview · release / hotfix: 확장 과정</text>
+</svg>
