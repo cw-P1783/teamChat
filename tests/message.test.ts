@@ -31,6 +31,7 @@ describe("participant display identity", () => {
   it("accepts UUID tab identifiers and rejects malformed identifiers", () => {
     expect(isValidClientId("00000000-0000-4000-8000-000000000001")).toBe(true);
     expect(isValidClientId("another-person")).toBe(false);
+    expect(isValidClientId("00000000-0000-0000-0000-000000000000")).toBe(false);
   });
 });
 
