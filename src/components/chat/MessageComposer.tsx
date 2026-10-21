@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { EmojiPicker } from "@/components/chat/EmojiPicker";
 import { MAX_MESSAGE_LENGTH } from "@/config/chat";
 import { isValidMessage } from "@/lib/message";
@@ -15,6 +15,48 @@ export function MessageComposer({ onSend, isSending }: MessageComposerProps) {
   const isComposing = useRef(false);
   const submissionInProgress = useRef(false);
   const input = useRef<HTMLTextAreaElement>(null);
+  const [composing, setComposing] = useState(false);
+  const [notice, setNotice] = useState("");
+  // Last textarea selection, recorded before focus moves to the picker; null means never focused.
+  const selection = useRef<{ start: number; end: number } | null>(null);
+  const pendingCaret = useRef<number | null>(null);
+
+  useLayoutEffect(() => {
+    const caret = pendingCaret.current;
+    if (caret === null || !input.current) return;
+    pendingCaret.current = null;
+    input.current.focus();
+    input.current.setSelectionRange(caret, caret);
+    selection.current = { start: caret, end: caret };
+  }, [draft]);
+
+  function rememberSelection() {
+    if (!input.current) return;
+    selection.current = { start: input.current.selectionStart, end: input.current.selectionEnd };
+  }
+
+  function insertEmoji(emoji: string) {
+    if (isSending || isComposing.current || submissionInProgress.current) return;
+    const start = Math.min(selection.current?.start ?? draft.length, draft.length);
+    const end = Math.min(selection.current?.end ?? draft.length, draft.length);
+    const next = draft.slice(0, start) + emoji + draft.slice(end);
+    if (next.length > MAX_MESSAGE_LENGTH) {
+      setNotice(`Emoji not added: the message would exceed ${MAX_MESSAGE_LENGTH.toLocaleString("en-US")} characters.`);
+      input.current?.focus();
+      input.current?.setSelectionRange(start, end);
+      return;
+    }
+    setNotice("");
+    if (next === draft) {
+      // Replacing a selection with the same emoji does not re-render, so move the caret directly.
+      input.current?.focus();
+      input.current?.setSelectionRange(end, end);
+      selection.current = { start: end, end };
+      return;
+    }
+    pendingCaret.current = start + emoji.length;
+    setDraft(next);
+  }
 
   async function submit() {
     if (isComposing.current || isSending || submissionInProgress.current || !isValidMessage(draft)) return;
@@ -50,10 +92,12 @@ export function MessageComposer({ onSend, isSending }: MessageComposerProps) {
           id="message-input"
           ref={input}
           value={draft}
-          onChange={(event) => setDraft(event.target.value)}
+          onChange={(event) => { setDraft(event.target.value); setNotice(""); }}
           onKeyDown={handleKeyDown}
-          onCompositionStart={() => { isComposing.current = true; }}
-          onCompositionEnd={() => { isComposing.current = false; }}
+          onSelect={rememberSelection}
+          onBlur={rememberSelection}
+          onCompositionStart={() => { isComposing.current = true; setComposing(true); }}
+          onCompositionEnd={() => { isComposing.current = false; setComposing(false); }}
           placeholder="Write a message to the lab…"
           maxLength={MAX_MESSAGE_LENGTH}
           rows={2}
@@ -62,7 +106,7 @@ export function MessageComposer({ onSend, isSending }: MessageComposerProps) {
         />
         <div className="composer-actions">
           <div className="composer-tools">
-            <EmojiPicker />
+            <EmojiPicker onSelect={insertEmoji} disabled={isSending || composing} />
             <span className="composer-tools-hint">A little hello goes a long way.</span>
           </div>
           <button className="send-button" type="submit" disabled={isSending || !isValidMessage(draft)} aria-label="Send message" aria-busy={isSending}>
@@ -73,6 +117,7 @@ export function MessageComposer({ onSend, isSending }: MessageComposerProps) {
           </button>
         </div>
       </div>
+      <p className="composer-notice" role="status">{notice}</p>
       <div className="composer-caption">
         <p id="composer-help"><kbd>Enter</kbd> to send <span aria-hidden="true">·</span> <kbd>Shift + Enter</kbd> for a new line</p>
         <span id="message-length">{draft.length} / {MAX_MESSAGE_LENGTH.toLocaleString("en-US")}</span>

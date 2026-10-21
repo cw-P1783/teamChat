@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import Home from "@/app/page";
 import { MessageComposer } from "@/components/chat/MessageComposer";
 import { MessageList } from "@/components/chat/MessageList";
-import { CHAT_TITLE, IDENTITY_STORAGE_KEY, MESSAGE_POLL_INTERVAL_MS, MESSAGE_REQUEST_TIMEOUT_MS } from "@/config/chat";
+import { CHAT_TITLE, IDENTITY_STORAGE_KEY, MAX_MESSAGE_LENGTH, MESSAGE_POLL_INTERVAL_MS, MESSAGE_REQUEST_TIMEOUT_MS } from "@/config/chat";
 import { useChat } from "@/hooks/useChat";
 import { useIdentity } from "@/hooks/useIdentity";
 import type { ChatIdentity, ChatMessage } from "@/types/chat";
@@ -163,6 +163,103 @@ describe("composer keyboard behavior", () => {
     fireEvent.keyDown(input, { key: "Enter", ...flags });
     expect(onSend).not.toHaveBeenCalled();
     expect(input).toHaveValue("한글");
+  });
+});
+
+describe("emoji picker", () => {
+  function renderComposer(isSending = false) {
+    const onSend = vi.fn().mockResolvedValue(true);
+    const view = render(<MessageComposer onSend={onSend} isSending={isSending} />);
+    const input = screen.getByRole<HTMLTextAreaElement>("textbox", { name: "Your message" });
+    const trigger = screen.getByRole("button", { name: "Insert emoji" });
+    return { onSend, view, input, trigger };
+  }
+
+  function choose(name: string) {
+    fireEvent.click(screen.getByRole("button", { name: "Insert emoji" }));
+    fireEvent.click(screen.getByRole("button", { name }));
+  }
+
+  it("inserts into an empty draft without sending and closes the panel", () => {
+    const { onSend, input, trigger } = renderComposer();
+    choose("Thumbs up");
+    expect(input).toHaveValue("👍");
+    expect(onSend).not.toHaveBeenCalled();
+    expect(trigger).toHaveAttribute("aria-expanded", "false");
+    expect(input).toHaveFocus();
+    expect(input.selectionStart).toBe(2);
+  });
+
+  it("inserts at the previous caret and replaces exactly the selected text", () => {
+    const { input } = renderComposer();
+    fireEvent.change(input, { target: { value: "Hello world" } });
+    input.focus();
+    input.setSelectionRange(5, 5);
+    fireEvent.select(input);
+    choose("Thumbs up");
+    expect(input).toHaveValue("Hello👍 world");
+    expect(input).toHaveFocus();
+    expect([input.selectionStart, input.selectionEnd]).toEqual([7, 7]);
+
+    input.setSelectionRange(8, 13);
+    fireEvent.select(input);
+    choose("Fire");
+    expect(input).toHaveValue("Hello👍 🔥");
+    expect([input.selectionStart, input.selectionEnd]).toEqual([10, 10]);
+  });
+
+  it("rejects an emoji that would exceed the limit and accepts one that exactly fits", () => {
+    const { input } = renderComposer();
+    const tooLong = "a".repeat(MAX_MESSAGE_LENGTH - 1);
+    fireEvent.change(input, { target: { value: tooLong } });
+    choose("Thumbs up");
+    expect(input).toHaveValue(tooLong);
+    expect(screen.getByRole("status")).toHaveTextContent(/Emoji not added/);
+
+    const fits = "a".repeat(MAX_MESSAGE_LENGTH - 2);
+    fireEvent.change(input, { target: { value: fits } });
+    expect(screen.getByRole("status")).toBeEmptyDOMElement();
+    choose("Thumbs up");
+    expect(input).toHaveValue(`${fits}👍`);
+    expect(input.value).toHaveLength(MAX_MESSAGE_LENGTH);
+  });
+
+  it("opens with keyboard focus on the choices and closes with Escape back to the trigger", () => {
+    const { trigger } = renderComposer();
+    fireEvent.click(trigger);
+    const panel = screen.getByRole("group", { name: "Emoji" });
+    expect(trigger).toHaveAttribute("aria-expanded", "true");
+    expect(trigger).toHaveAttribute("aria-controls", panel.id);
+    const options = within(panel).getAllByRole("button");
+    expect(options.length).toBeGreaterThanOrEqual(12);
+    expect(options[0]).toHaveFocus();
+    for (const option of options) {
+      expect(option).toHaveAccessibleName(/\w/);
+      expect(option).toHaveAttribute("type", "button");
+    }
+    fireEvent.keyDown(options[0], { key: "Escape" });
+    expect(trigger).toHaveAttribute("aria-expanded", "false");
+    expect(panel).not.toBeVisible();
+    expect(trigger).toHaveFocus();
+  });
+
+  it("closes on outside activation without taking focus from the new control", () => {
+    const { input, trigger } = renderComposer();
+    fireEvent.click(trigger);
+    fireEvent.pointerDown(input);
+    input.focus();
+    expect(trigger).toHaveAttribute("aria-expanded", "false");
+    expect(input).toHaveFocus();
+  });
+
+  it("cannot edit the draft while sending or during IME composition", () => {
+    const { input, trigger, view } = renderComposer();
+    fireEvent.compositionStart(input);
+    expect(trigger).toBeDisabled();
+    fireEvent.compositionEnd(input);
+    expect(trigger).toBeEnabled();
+    view.rerender(<MessageComposer onSend={vi.fn()} isSending />);
+    expect(trigger).toBeDisabled();
   });
 });
 
