@@ -16,6 +16,12 @@ What problem does this solve, and what can users do now?
 ## Changes
 -
 
+<!-- For a deployment PR (base main / head develop), include the old → new version,
+source SHA, included PRs, current CI/behind/conflict status, deployment trigger,
+and post-deployment checks here. Follow docs/releases.md; remove unrelated issue
+placeholders. Do not claim deployment success or authorize merge/tag publication
+merely by preparing this PR. -->
+
 ## Acceptance criteria and verification
 - [ ] I verified the issue's acceptance criteria.
 - [ ] I verified existing message sending and display behavior.

@@ -93,6 +93,10 @@ git push
 
 Repeat peer review after resolving conflicts. Use `git merge --abort` to cancel an in-progress merge if needed. After merging a feature branch, start the next task on a new branch from updated `develop`.
 
+## Production releases
+
+For Production PRs (`develop` → `main`), follow [versioned releases](docs/releases.md). The canonical Git skill is `.claude/skills/git-issue-pr/SKILL.md`; `.agents/skills/git-issue-pr` links to it.
+
 ## Isolated conflict exercise
 
 ```bash

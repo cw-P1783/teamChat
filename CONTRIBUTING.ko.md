@@ -1,5 +1,7 @@
 # 함께 작업하기
 
+Production 배포 PR(`develop` → `main`)은 [버전별 릴리스 규칙](docs/releases.md)을 따릅니다. Git 스킬 원본은 `.claude/skills/git-issue-pr/SKILL.md`이며 `.agents/skills/git-issue-pr`은 해당 디렉터리를 가리킵니다.
+
 [English](CONTRIBUTING.md) | **한국어**
 
 이 저장소는 Team Chat 화면을 작은 Issue 단위로 개선하는 Git·GitHub 실습용 프로젝트입니다. 기능 작업은 최신 `develop`에서 시작하고 `develop`을 대상으로 PR을 만듭니다. `main`과 `develop`에는 직접 push하지 않습니다.

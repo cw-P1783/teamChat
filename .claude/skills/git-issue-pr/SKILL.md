@@ -1,9 +1,11 @@
 ---
 name: git-issue-pr
-description: Prepare or create commits and pull requests for Team Chat Lab using Conventional Commits, real issue references, and develop-merge issue closure. Use before drafting, generating, amending, or publishing any commit message or PR title/body in this repository.
+description: Prepare Team Chat Lab commits, issue PRs, and versioned deployment PRs from develop to main. Use before drafting, editing, or publishing commit messages or PR titles and bodies in this repository.
 ---
 
 # Git issues, commits, and pull requests
+
+Canonical source: `.claude/skills/git-issue-pr/SKILL.md`. `.agents/skills/git-issue-pr` is a relative symlink to this directory; edit the canonical file only. Resolve repository-relative paths from the repository root.
 
 Apply this skill whenever preparing a commit or PR, including text-only suggestions. Read the repository's `AGENTS.md`, `CONTRIBUTING.md`, and `.github/pull_request_template.md`. Keep existing user authorization: a request for wording permits drafting; a request to commit permits a local commit; a request to open a PR includes its necessary branch push. Do not repeat permission questions for an already authorized action. Creating a commit or PR does not authorize merge, deployment, or changes to repository settings.
 
@@ -47,10 +49,23 @@ Fixes #57
 
 - The numbers must be actual same-repository issues, not PR numbers. Maximum 20 closing references per PR. For partial work, prerequisites, or context, use `Refs #42` instead; it deliberately leaves that issue open. Never add `Fixes` when its acceptance criteria remain incomplete.
 - Do not combine multiple references on one line or use a cross-repository closing reference. Replace or remove template placeholders such as `#ISSUE_NUMBER`. A PR unrelated to an issue should explicitly say that no issue is associated.
-- GitHub's native closing keywords only close issues when merging to the default branch. In this repository, [the develop-merge workflow](../../../.github/workflows/close-linked-issues.yml) handles `develop`: a push must match an actually merged PR's merge commit and base branch before it closes the PR's explicitly referenced issues with reason `completed`. `Refs` does not close anything. Closing means integrated into `develop`, not deployed to Production.
+- GitHub's native closing keywords only close issues when merging to the default branch. Query the current default rather than assuming `main`. Here `.github/workflows/close-linked-issues.yml` handles `develop`: a push must match an actually merged PR's merge commit and base branch before it closes that PR's explicitly referenced issues. `Refs` does not close anything. Integration into `develop` does not mean Production deployment.
 - The workflow and its helper must first be merged into `develop` to activate this behavior. Do not change the default branch or claim a workflow ran before it exists there. A closed but unmerged PR, an ordinary feature push, or a PR targeting another branch does not trigger this workflow's closures.
 - Release PRs use base `main`, compare `develop`, and the facilitator's release procedure. Do not manufacture a feature issue merely to describe a release, or merge/publish a release without authorization.
 
 For GitHub CLI, write the complete PR body to a temporary UTF-8 file and use `gh pr create --base develop --head BRANCH --title TITLE --body-file PATH` (or `gh pr edit ... --body-file PATH`). When asked to open/create a GitHub Draft PR, add `--draft`; a request for draft text alone remains text generation. Pass literal arguments safely; do not put multiline bodies or untrusted issue text into shell command substitutions. Respect the authorized scope and avoid creating a second PR if the task already has one.
 
 After an authorized action, report the commit hash or PR URL, the actual issue reference(s), base branch, validation results, and remaining manual checks. Do not close issues manually while preparing the PR or claim they are closed before the merge workflow succeeds.
+
+## Deployment PRs and versioning
+
+Read `docs/releases.md` when asked for a deployment/release PR.
+
+1. Fetch `origin` and tags. Inspect remote `main...develop` commits, files, package versions, and open PRs with base `main` / head `develop`. Reuse an existing release PR. Recheck refs after fetching; local tracking refs may be stale.
+2. Use **base `main`, compare `develop`**. Include changes already integrated into remote `develop`; do not merge pending feature PRs just to include them. Record the actual included PRs and source SHA.
+3. Each Production release needs a stable `MAJOR.MINOR.PATCH` greater than `origin/main`, with an unused `vVERSION` tag. `package.json` is authoritative; both root version entries in `package-lock.json` must match. Run `npm run version:check -- --base-ref origin/main`.
+4. If needed, prepare a version bump on a maintenance branch from latest `origin/develop` using `npm version patch|minor|major --no-git-tag-version`, following `docs/releases.md`. Review both package files and run `npm run check`. A deployment-PR request includes necessary version preparation and its PR to `develop`, but not merging it. Keep the release PR Draft with the blocker explained until that bump is integrated. Never claim the unmerged version is included or increment again when the intended unreleased version is already on `develop`.
+5. Use an English title such as `chore(release): deploy v0.1.1 to main`. Adapt the PR template to include version transition, included changes, source SHA, actual check results, outstanding checks/conflicts, deployment trigger, and post-deployment verification. Do not invent a release issue or repeat issue-closing directives from already integrated feature PRs.
+6. Check current CI, conflicts, and whether the head is behind `main` before reporting readiness. Report required synchronization or prepare it within the authorized scope; do not silently merge `main` into shared `develop`. Earlier source checks are historical evidence, not validation of the current release candidate.
+7. PR creation does not authorize merge, deployment, tagging, publishing a GitHub Release, or changing/bypassing protections. Human review remains required. After an explicitly authorized merge, `.github/workflows/workshop.yml` deploys the exact `main` push SHA after CI passes. Preserve Production Redis credentials, room prefix, and history.
+8. After verified deployment, record version, SHA, URL, and shared-chat smoke checks. Only when tag/release publication is explicitly requested, create `vVERSION` on the deployed `main` commit. Verify existing tags and never move a published tag. A failed deploy is not a completed release; rollback requires an authorized revert/redeployment.
