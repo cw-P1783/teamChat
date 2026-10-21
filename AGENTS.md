@@ -14,6 +14,8 @@
 
 ## Required AI commit and PR workflow
 
+- Canonical source: `.claude/skills/git-issue-pr/SKILL.md`; `.agents/skills/git-issue-pr` links to that directory. Edit only the canonical source. For versioned deployment PRs (`develop` → `main`), follow its release workflow and `docs/releases.md`.
+
 - **Always** read and apply the [`git-issue-pr`](.agents/skills/git-issue-pr/SKILL.md) skill before suggesting, generating, or editing a commit message or PR title/body, or creating an actual commit or PR. This also applies to requests for text only.
 - In Codex, use `$git-issue-pr`. If automatic discovery is unavailable, read the linked `SKILL.md` directly and follow the same workflow. Claude Code uses the same skill through `CLAUDE.md` and `.claude/skills/git-issue-pr`.
 - Write commit messages and PR titles in English using Conventional Commits. Use actual GitHub issue numbers; do not substitute catalog identifiers such as `CHAT-01` for issue numbers.
