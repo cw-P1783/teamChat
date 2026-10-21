@@ -16,6 +16,7 @@
   @media (max-width:900px){.shell{padding:18px 20px}.brand span,.keys{display:none}.toolbar-actions select{max-width:200px}main{padding:30px 0}h1{font-size:clamp(64px,11vw,100px)}.long h1{font-size:clamp(58px,8vw,90px)}.content{grid-template-columns:1fr;gap:22px}.point{font-size:24px}.subtitle{font-size:26px}pre{font-size:22px}.checkpoint{font-size:23px}.flow-image{max-height:calc(100svh - 240px)}.footer{font-size:14px}.nav button{padding:8px 11px}}
   @media (min-width:901px) and (max-height:850px){.shell{padding:18px 30px 14px}main{padding:14px 2vw}.eyebrow{font-size:18px;margin-bottom:10px}h1{font-size:clamp(60px,8vw,105px);margin-bottom:16px}.long h1{font-size:clamp(52px,6.4vw,76px)}.subtitle{font-size:28px;margin-bottom:18px}.point{font-size:24px}.points{gap:14px}.content{gap:24px}.code-card{padding:16px 22px}.code-label{font-size:14px;margin-bottom:12px}pre{font-size:21px;line-height:1.35}.checkpoint{font-size:22px;margin-top:20px}.footer{font-size:15px;padding-top:12px}.flow-view .eyebrow{font-size:18px}.flow-image{max-height:calc(100svh - 210px)}}
   @media (prefers-reduced-motion:reduce){.progress-fill{transition:none}}
+  .cover h1{font-size:clamp(42px,6vw,88px);line-height:1.12;letter-spacing:-.035em;max-width:19ch;margin:0}
   @media print{.toolbar,.footer,.progress{display:none}.shell{padding:0}.flow-image{max-height:none}main{min-height:90vh}.code-card{break-inside:avoid}}
 </style>
 </head>
@@ -43,6 +44,10 @@
   const locales = {
   "ko": {
     "slides": [
+      {
+        "title": "Git & GitHub: From First Commit to First Pull Request",
+        "cover": true
+      },
       {
         "title": "Flow",
         "flow": true
@@ -180,6 +185,10 @@
   },
   "en": {
     "slides": [
+      {
+        "title": "Git & GitHub: From First Commit to First Pull Request",
+        "cover": true
+      },
       {
         "title": "Flow",
         "flow": true
@@ -323,7 +332,7 @@
   const next = document.querySelector('#next');
   let language = new URL(location.href).searchParams.get('lang') === 'en' ? 'en' : 'ko';
   let index = 0;
-  let beforeFlow = 1;
+  let beforeFlow = 0;
   const escapeHtml = value => String(value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 
   function render(target, updateHash = true) {
@@ -332,8 +341,10 @@
     const numeric = Number(target);
     index = Number.isInteger(numeric) ? Math.max(0, Math.min(slides.length - 1, numeric)) : 0;
     const slide = slides[index];
-    stage.className = slide.flow ? 'flow-view' : slide.long ? 'long' : '';
-    if (slide.flow) {
+    stage.className = slide.cover ? 'cover' : slide.flow ? 'flow-view' : slide.long ? 'long' : '';
+    if (slide.cover) {
+      stage.innerHTML = `<h1 lang="en">${escapeHtml(slide.title)}</h1>`;
+    } else if (slide.flow) {
       stage.innerHTML = `<h1 class="sr-only">${escapeHtml(text.flowHeading)}</h1><p class="eyebrow">${escapeHtml(text.join)} <a class="join-link" href="https://teamchat-jet.vercel.app" target="_blank" rel="noopener noreferrer">teamchat-jet.vercel.app</a>${escapeHtml(text.joinSteps)}</p><img class="flow-image" src="${text.flowImage}" alt="${escapeHtml(text.flowAlt)}">`;
     } else {
       stage.innerHTML = `<p class="eyebrow">${escapeHtml(slide.time)}</p><h1>${slide.heading || escapeHtml(slide.title)}</h1><p class="subtitle">${escapeHtml(slide.subtitle)}</p><div class="content"><div class="points">${slide.points.map((point, i) => `<p class="point ${i ? 'secondary' : ''}">${escapeHtml(point)}</p>`).join('')}</div><div class="code-card"><p class="code-label">${escapeHtml(slide.label)}</p><pre>${escapeHtml(slide.code)}</pre></div></div><p class="checkpoint">${escapeHtml(slide.check)}</p>`;
@@ -382,8 +393,9 @@
     render(index, false);
   });
   function toggleFlow() {
-    if (index === 0) render(beforeFlow);
-    else { beforeFlow = index; render(0); }
+    const flowIndex = locales[language].slides.findIndex(slide => slide.flow);
+    if (index === flowIndex) render(beforeFlow);
+    else { beforeFlow = index; render(flowIndex); }
   }
   async function fullscreen() {
     try {

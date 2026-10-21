@@ -10,23 +10,23 @@ function open(url = "http://127.0.0.1:4173/") {
 
 describe("presentation language switching", () => {
   it("preserves the slide, flow return point, and language when reloading", () => {
-    const dom = open("http://127.0.0.1:4173/#8");
+    const dom = open("http://127.0.0.1:4173/#9");
     try {
       const { document, Event } = dom.window;
       const language = document.querySelector("#language-select");
       language.value = "en";
       language.dispatchEvent(new Event("change"));
       expect(document.documentElement.lang).toBe("en");
-      expect(document.querySelector("#counter")?.textContent).toBe("9 / 10");
+      expect(document.querySelector("#counter")?.textContent).toBe("10 / 11");
       expect(document.querySelector("pre")?.textContent).toContain("workshop:conflict:en");
       expect(document.querySelector("#next")?.getAttribute("aria-label")).toBe("Next slide");
       expect(document.title).toContain("Team Chat Workshop");
       expect(dom.window.location.search).toBe("?lang=en");
-      expect(dom.window.location.hash).toBe("#8");
+      expect(dom.window.location.hash).toBe("#9");
 
       const reloaded = open(dom.window.location.href);
       expect(reloaded.window.document.documentElement.lang).toBe("en");
-      expect(reloaded.window.document.querySelector("#counter")?.textContent).toBe("9 / 10");
+      expect(reloaded.window.document.querySelector("#counter")?.textContent).toBe("10 / 11");
       reloaded.window.close();
 
       document.querySelector("#flow-button").click();
@@ -36,7 +36,7 @@ describe("presentation language switching", () => {
       expect(document.querySelector("img")?.getAttribute("src")).toBe("git-flow.svg");
       expect(document.querySelector("img")?.getAttribute("alt")).toContain("협업");
       document.querySelector("#flow-button").click();
-      expect(document.querySelector("#counter")?.textContent).toBe("9 / 10");
+      expect(document.querySelector("#counter")?.textContent).toBe("10 / 11");
       expect(document.querySelector("pre")?.textContent).toContain("실습방");
     } finally {
       dom.window.close();
@@ -48,18 +48,24 @@ describe("presentation language switching", () => {
       const dom = open(`http://127.0.0.1:4173/?lang=${language}`);
       try {
         const { document, KeyboardEvent } = dom.window;
-        expect(document.querySelectorAll("#slide-select option")).toHaveLength(10);
+        expect(document.querySelectorAll("#slide-select option")).toHaveLength(11);
+        expect(document.querySelector("h1")?.textContent).toBe("Git & GitHub: From First Commit to First Pull Request");
+        document.querySelector("#flow-button").click();
+        expect(document.querySelector(".flow-image")).toBeTruthy();
+        document.querySelector("#flow-button").click();
+        expect(document.querySelector("#stage").className).toBe("cover");
         const key = (key) => document.body.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true }));
-        for (let i = 1; i < 10; i++) {
+        for (let i = 1; i < 11; i++) {
           key("ArrowRight");
-          expect(document.querySelector("#counter")?.textContent).toBe(`${i + 1} / 10`);
-          expect(document.querySelector(".subtitle")?.textContent).toBeTruthy();
+          expect(document.querySelector("#counter")?.textContent).toBe(`${i + 1} / 11`);
+          if (i === 1) expect(document.querySelector(".flow-image")).toBeTruthy();
+          else expect(document.querySelector(".subtitle")?.textContent).toBeTruthy();
         }
         expect(document.querySelector("#next").disabled).toBe(true);
         key("Home");
         expect(document.querySelector("#previous").disabled).toBe(true);
         document.querySelector("#language-select").dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
-        expect(document.querySelector("#counter")?.textContent).toBe("1 / 10");
+        expect(document.querySelector("#counter")?.textContent).toBe("1 / 11");
       } finally {
         dom.window.close();
       }
