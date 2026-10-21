@@ -17,6 +17,8 @@
   @media (min-width:901px) and (max-height:850px){.shell{padding:18px 30px 14px}main{padding:14px 2vw}.eyebrow{font-size:18px;margin-bottom:10px}h1{font-size:clamp(60px,8vw,105px);margin-bottom:16px}.long h1{font-size:clamp(52px,6.4vw,76px)}.subtitle{font-size:28px;margin-bottom:18px}.point{font-size:24px}.points{gap:14px}.content{gap:24px}.code-card{padding:16px 22px}.code-label{font-size:14px;margin-bottom:12px}pre{font-size:21px;line-height:1.35}.checkpoint{font-size:22px;margin-top:20px}.footer{font-size:15px;padding-top:12px}.flow-view .eyebrow{font-size:18px}.flow-image{max-height:calc(100svh - 210px)}}
   @media (prefers-reduced-motion:reduce){.progress-fill{transition:none}}
   .cover h1{font-size:clamp(42px,6vw,88px);line-height:1.12;letter-spacing:-.035em;max-width:19ch;margin:0}
+  .appendix h1{font-size:clamp(42px,5vw,72px)}.appendix .subtitle{font-size:clamp(22px,2vw,28px);margin-bottom:20px}.appendix .point{font-size:clamp(20px,1.8vw,26px)}.appendix .code-card{padding:18px 22px}.appendix pre{font-size:clamp(17px,1.4vw,20px);line-height:1.35}.appendix .checkpoint{font-size:clamp(20px,1.6vw,23px);margin-top:20px}.sources{display:flex;flex-wrap:wrap;gap:18px;margin:16px 0 0;font-size:15px}.sources a{color:var(--muted);text-underline-offset:4px}
+  .install-steps{display:flex;flex-direction:column;justify-content:center;gap:22px}.install-steps .code-label{margin-bottom:8px}.install-steps pre{font-size:clamp(17px,1.4vw,20px)}
   @media print{.toolbar,.footer,.progress{display:none}.shell{padding:0}.flow-image{max-height:none}main{min-height:90vh}.code-card{break-inside:avoid}}
 </style>
 </head>
@@ -162,6 +164,64 @@
         "label": "MAIN → CI → VERCEL PRODUCTION",
         "code": "develop → main 공동 PR\nCI 성공 + 동료 Approve → Merge\nmain push → CI/CD → Production\n\nteamchat-jet.vercel.app",
         "check": "개선 UI · 실제 대화 · main SHA · Production URL을 확인하세요."
+      },
+      {
+        "title": "GitHub CLI Setup",
+        "time": "부록 A · macOS / Windows / Claude Code",
+        "subtitle": "명령어로 설치하거나, 오른쪽 프롬프트를 Claude Code에 붙여넣으세요",
+        "label": "PROMPT · CLAUDE CODE",
+        "code": "Install GitHub CLI (gh) in this environment.\nCheck the OS, shell, and whether gh exists.\nOn macOS, use Homebrew if available.\nOn Windows, use WinGet if available.\nIf using WSL, install gh inside WSL.\nOtherwise, use the official install guide.\nVerify gh --version; refresh PATH if needed.\nGuide me through gh auth login --web.\nI will complete the browser login myself.\nRun gh auth status to confirm my account.",
+        "check": "Windows는 터미널을 다시 여세요. WSL은 내부에 설치하세요. 브라우저 로그인은 직접 진행하세요.",
+        "sources": [
+          {
+            "title": "GitHub CLI installation",
+            "url": "https://github.com/cli/cli#installation"
+          },
+          {
+            "title": "Browser login",
+            "url": "https://cli.github.com/manual/gh_auth_login"
+          }
+        ],
+        "appendix": true,
+        "long": true,
+        "setup": [
+          {
+            "label": "macOS · Homebrew",
+            "code": "brew install gh"
+          },
+          {
+            "label": "Windows · PowerShell / WinGet",
+            "code": "winget install --id GitHub.cli --source winget"
+          },
+          {
+            "label": "설치 확인 · 로그인",
+            "code": "gh --version\ngh auth login --web --hostname github.com\ngh auth status"
+          }
+        ]
+      },
+      {
+        "title": "GitHub Issues",
+        "time": "부록 B · 작업 범위",
+        "subtitle": "무엇을 바꾸고 언제 완료할지 합의한다",
+        "points": [
+          "Issue: 문제 · 범위 · 담당자 · 수용 기준",
+          "배정된 Issue 하나를 선택\nCHAT-xx 대신 실제 GitHub 번호 사용"
+        ],
+        "label": "TEAMCHAT 저장소에서 실행",
+        "code": "gh issue list --assignee @me --state open\n\n# Replace ISSUE_NUMBER with your GitHub number\ngh issue view ISSUE_NUMBER --web\n\n# Read the full body before implementing\ngh issue view ISSUE_NUMBER",
+        "check": "Issue는 작업 정의, PR은 코드 변경 제안입니다. 리뷰에서 수용 기준을 확인하세요.",
+        "sources": [
+          {
+            "title": "GitHub Issues",
+            "url": "https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/creating-an-issue"
+          },
+          {
+            "title": "Workshop issues",
+            "url": "https://github.com/eun8ang/teamChat/issues"
+          }
+        ],
+        "appendix": true,
+        "long": true
       }
     ],
     "duration": "100분 실습 · 여유 20분",
@@ -303,6 +363,64 @@
         "label": "MAIN → CI → VERCEL PRODUCTION",
         "code": "One shared develop → main PR\nPassing CI + peer approval → Merge\nmain push → CI/CD → Production\n\nteamchat-jet.vercel.app",
         "check": "Verify the UI, shared messages, main SHA, and Production URL."
+      },
+      {
+        "title": "GitHub CLI Setup",
+        "time": "Appendix A · macOS / Windows / Claude Code",
+        "subtitle": "Run the commands, or ask Claude Code with this prompt",
+        "label": "PROMPT · CLAUDE CODE",
+        "code": "Install GitHub CLI (gh) in this environment.\nCheck the OS, shell, and whether gh exists.\nOn macOS, use Homebrew if available.\nOn Windows, use WinGet if available.\nIf using WSL, install gh inside WSL.\nOtherwise, use the official install guide.\nVerify gh --version; refresh PATH if needed.\nGuide me through gh auth login --web.\nI will complete the browser login myself.\nRun gh auth status to confirm my account.",
+        "check": "Windows: reopen the terminal. WSL: install gh inside WSL. Complete browser login yourself.",
+        "sources": [
+          {
+            "title": "GitHub CLI installation",
+            "url": "https://github.com/cli/cli#installation"
+          },
+          {
+            "title": "Browser login",
+            "url": "https://cli.github.com/manual/gh_auth_login"
+          }
+        ],
+        "appendix": true,
+        "long": true,
+        "setup": [
+          {
+            "label": "macOS · Homebrew",
+            "code": "brew install gh"
+          },
+          {
+            "label": "Windows · PowerShell / WinGet",
+            "code": "winget install --id GitHub.cli --source winget"
+          },
+          {
+            "label": "VERIFY & SIGN IN",
+            "code": "gh --version\ngh auth login --web --hostname github.com\ngh auth status"
+          }
+        ]
+      },
+      {
+        "title": "GitHub Issues",
+        "time": "Appendix B · Task scope",
+        "subtitle": "Agree on the work and what counts as done",
+        "points": [
+          "Issue: problem, scope, assignee, acceptance criteria",
+          "Choose one assigned issue.\nUse its GitHub number, not a CHAT-xx catalog ID."
+        ],
+        "label": "FROM THE TEAMCHAT REPOSITORY",
+        "code": "gh issue list --assignee @me --state open\n\n# Replace ISSUE_NUMBER with your GitHub number\ngh issue view ISSUE_NUMBER --web\n\n# Read the full body before implementing\ngh issue view ISSUE_NUMBER",
+        "check": "Issue defines the task; PR proposes the code. Check acceptance criteria in review.",
+        "sources": [
+          {
+            "title": "GitHub Issues",
+            "url": "https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/creating-an-issue"
+          },
+          {
+            "title": "Workshop issues",
+            "url": "https://github.com/eun8ang/teamChat/issues"
+          }
+        ],
+        "appendix": true,
+        "long": true
       }
     ],
     "duration": "100 min practice · 20 min buffer",
@@ -341,13 +459,26 @@
     const numeric = Number(target);
     index = Number.isInteger(numeric) ? Math.max(0, Math.min(slides.length - 1, numeric)) : 0;
     const slide = slides[index];
-    stage.className = slide.cover ? 'cover' : slide.flow ? 'flow-view' : slide.long ? 'long' : '';
+    stage.className = slide.cover ? 'cover' : slide.flow ? 'flow-view' : slide.appendix ? 'long appendix' : slide.long ? 'long' : '';
     if (slide.cover) {
       stage.innerHTML = `<h1 lang="en">${escapeHtml(slide.title)}</h1>`;
     } else if (slide.flow) {
       stage.innerHTML = `<h1 class="sr-only">${escapeHtml(text.flowHeading)}</h1><p class="eyebrow">${escapeHtml(text.join)} <a class="join-link" href="https://teamchat-jet.vercel.app" target="_blank" rel="noopener noreferrer">teamchat-jet.vercel.app</a>${escapeHtml(text.joinSteps)}</p><img class="flow-image" src="${text.flowImage}" alt="${escapeHtml(text.flowAlt)}">`;
     } else {
-      stage.innerHTML = `<p class="eyebrow">${escapeHtml(slide.time)}</p><h1>${slide.heading || escapeHtml(slide.title)}</h1><p class="subtitle">${escapeHtml(slide.subtitle)}</p><div class="content"><div class="points">${slide.points.map((point, i) => `<p class="point ${i ? 'secondary' : ''}">${escapeHtml(point)}</p>`).join('')}</div><div class="code-card"><p class="code-label">${escapeHtml(slide.label)}</p><pre>${escapeHtml(slide.code)}</pre></div></div><p class="checkpoint">${escapeHtml(slide.check)}</p>`;
+      stage.innerHTML = `<p class="eyebrow">${escapeHtml(slide.time)}</p><h1>${slide.heading || escapeHtml(slide.title)}</h1><p class="subtitle">${escapeHtml(slide.subtitle)}</p><div class="content"><div class="points">${slide.setup ? `<div class="install-steps">${slide.setup.map(step => `<div><p class="code-label">${escapeHtml(step.label)}</p><pre>${escapeHtml(step.code)}</pre></div>`).join('')}</div>` : slide.points.map((point, i) => `<p class="point ${i ? 'secondary' : ''}">${escapeHtml(point)}</p>`).join('')}</div><div class="code-card"><p class="code-label">${escapeHtml(slide.label)}</p><pre>${escapeHtml(slide.code)}</pre></div></div><p class="checkpoint">${escapeHtml(slide.check)}</p>`;
+    }
+    if (slide.sources) {
+      const sources = document.createElement('p');
+      sources.className = 'sources';
+      for (const source of slide.sources) {
+        const link = document.createElement('a');
+        link.href = source.url;
+        link.textContent = source.title;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        sources.append(link);
+      }
+      stage.append(sources);
     }
     picker.value = String(index);
     previous.disabled = index === 0;
